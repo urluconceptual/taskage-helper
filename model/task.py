@@ -13,5 +13,6 @@ class Task(db.Model):
     effort_points = Column(Integer)
     estimation = Column(Integer)
     progress = Column(Integer)
+    task_type_id = Column(Integer)
     sprint_id = Column(Integer, ForeignKey('sprints.id'))
     assignee_id = Column(Integer, ForeignKey('users.id'))
