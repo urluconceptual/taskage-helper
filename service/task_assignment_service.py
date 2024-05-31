@@ -5,33 +5,32 @@ from sqlalchemy import text
 from sklearn.preprocessing import MinMaxScaler
 
 
-def to_dict(db_object):
-    return {c.name: getattr(db_object, c.name) for c in db_object.__table__.columns}
-
-
 def get_suggestion(priority, effort_points, task_type):
     new_task = [priority, effort_points, task_type]
     past_tasks = get_past_tasks()
 
-    print(new_task, past_tasks)
-
     normalized_new_task, normalized_past_tasks = normalize_data(new_task, past_tasks)
     task_user_association = get_task_user_association(normalized_past_tasks)
 
-    final_similarity_scores = []
-
-    for user_id, tasks in task_user_association.items():
-        cosine_similarity_scores = calculate_cosine_similarity(np.array(normalized_new_task[:2]), tasks[:, :2])
-        jaccard_similarity_scores = calculate_jaccard_similarity(np.array(normalized_new_task[2:]), tasks[:, 2:])
-        combined_similarity_scores = np.mean([cosine_similarity_scores, jaccard_similarity_scores], axis=0)
-        final_similarity_score = np.mean(combined_similarity_scores)
-        final_similarity_scores.append(final_similarity_score)
-
-    print(final_similarity_scores)
+    final_similarity_scores = calculate_similarity_scores(normalized_new_task, task_user_association)
 
     best_user_id = list(task_user_association.keys())[np.argmax(final_similarity_scores)]
 
     return best_user_id
+
+
+def calculate_similarity_scores(normalized_new_task, task_user_association):
+    return [
+        calculate_user_similarity_score(normalized_new_task, tasks)
+        for tasks in task_user_association.values()
+    ]
+
+
+def calculate_user_similarity_score(normalized_new_task, tasks):
+    cosine_similarity_scores = calculate_cosine_similarity(np.array(normalized_new_task[:2]), tasks[:, :2])
+    jaccard_similarity_scores = calculate_jaccard_similarity(np.array(normalized_new_task[2:]), tasks[:, 2:])
+    combined_similarity_scores = np.mean([cosine_similarity_scores, jaccard_similarity_scores], axis=0)
+    return np.mean(combined_similarity_scores)
 
 
 def get_past_tasks():
@@ -78,10 +77,15 @@ def calculate_cosine_similarity(new_task, tasks):
 
 
 def calculate_jaccard_similarity(new_task, tasks):
-    jaccard_similarity_scores = []
-    for task in tasks:
-        intersection = np.intersect1d(new_task, task).size
-        union = np.union1d(new_task, task).size
-        similarity = intersection / union
-        jaccard_similarity_scores.append(similarity)
+    jaccard_similarity_scores = [
+        calculate_single_jaccard_similarity(new_task, task)
+        for task in tasks
+    ]
     return jaccard_similarity_scores
+
+
+def calculate_single_jaccard_similarity(new_task, task):
+    intersection = np.intersect1d(new_task, task).size
+    union = np.union1d(new_task, task).size
+    return intersection / union
+
