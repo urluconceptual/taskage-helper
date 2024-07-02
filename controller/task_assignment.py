@@ -18,13 +18,11 @@ def suggest_assigment():
     priority = request.args.get('priority_id', type=int)
     effort_points = request.args.get('effort_points', type=int)
     task_type = request.args.get('type', type=int)
-    sprint_id = request.args.get('sprint_id', type=int)
 
     priority = validate_query_param(priority, 'priority_id', int)
     effort_points = validate_query_param(effort_points, 'effort_points', int)
     task_type = validate_query_param(task_type, 'type', int)
-    sprint_id = validate_query_param(sprint_id, 'sprint_id', int)
 
-    best_user_id = get_suggestion(priority, effort_points, task_type, sprint_id)
+    best_user_id = get_suggestion(priority, effort_points, task_type)
 
     return jsonify(best_user_id)
