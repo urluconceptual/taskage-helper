@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, ForeignKey, DateTime
+
 from database import db
 
 
