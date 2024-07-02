@@ -17,4 +17,4 @@ db.init_app(app)
 app.register_blueprint(task_assignment_blueprint, url_prefix='/helper/assignment')
 
 if __name__ == '__main__':
-    app.run(host='http://0.0.0.0', port="5000")
+    app.run(host='0.0.0.0', port="5000")
